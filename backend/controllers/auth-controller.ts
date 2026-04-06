@@ -3,6 +3,7 @@
 
 import * as userModelModule from "../models/user-model.ts";
 import * as authModule from "../utils/auth.ts";
+import * as authService from "../services/auth-service.ts";
 
 /* Autentisering och auktorisering
  
@@ -22,34 +23,9 @@ export async function registerUserController(context: any) {
     const email = reqBody.email;
     const role = reqBody.role;
 
-    const existingUser = userModelModule.getUserByEmail(email);
-    if (existingUser) {
-        context.response.status = 400;
-        context.response.body = { error: "User with this email already exists." };
-        return;
-    }
-
-    const existingUsername = userModelModule.getUserByUsername(username);
-    if (existingUsername) {
-        context.response.status = 400;
-        context.response.body = { error: "User with this username already exists." };
-        return;
-    }
-
-    const hasedPassword = await authModule.hashPassword(reqBody.password);
-    const newUserId = userModelModule.createUser({
-        username,
-        email,
-        password: hasedPassword,
-        role: role || "user",
-    });
-
-    context.response.status = 201;
-    context.response.body = {
-        message: "User created.",
-        userId: newUserId
-    }
-
+    const response = authService.registerUserService({reqBody, username, email, role})
+    return response;
+    
 }
 
 export async function loginUserController(context: any) {
