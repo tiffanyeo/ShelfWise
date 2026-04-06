@@ -18,53 +18,23 @@ import * as authService from "../services/auth-service.ts";
 
 export async function registerUserController(context: any) {
 
-    const reqBody = await context.request.json(); 
+    const reqBody = await context.request.json();
     const username = reqBody.username;
     const email = reqBody.email;
     const role = reqBody.role;
 
-    const response = authService.registerUserService({reqBody, username, email, role})
+    const response = authService.registerUserService({ reqBody, username, email, role })
     return response;
-    
+
 }
 
 export async function loginUserController(context: any) {
 
-    const reqBody = await context.request.json(); 
+    const reqBody = await context.request.json();
     const email = reqBody.email;
 
-    const foundUser = userModelModule.getUserByEmail(email);
-    if (!foundUser) {
-        context.response.status = 401;
-        context.response.body = { error: "Unvalid email or password." };
-        return;
-    }
-
-    const validPassword = await authModule.comparePassword(reqBody.password, foundUser.password);
-    if (!validPassword) {
-        context.response.status = 401;
-        context.response.body = { error: "Unvalid email or password." };
-        return;
-    }
-
-    const payload = {
-        id: foundUser.id,
-        email: foundUser.email,
-        role: foundUser.role,
-        exp: authModule.getTokenExpiration(60)
-    }
-    const jwt = await authModule.generateJwtToken(payload);
-
-    context.response.status = 200;
-    context.response.body = {
-        message: "Sign in successful!",
-        token: jwt,
-        user: {
-            id: foundUser.id,
-            email: foundUser.email,
-            role: foundUser.role,
-        }
-    };
+    const response = authService.loginUserService({ reqBody, email })
+    return response;
 
 }
 
@@ -78,7 +48,7 @@ export async function updateUserController(context: any) {
     }
 
     const token = authHeader.replace("Bearer ", "");
-    
+
     let payload: { id: number; role: string; };
 
     try {
